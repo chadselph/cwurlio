@@ -1,0 +1,2 @@
+class CwurlioUserException(Exception):
+    pass
