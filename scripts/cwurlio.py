@@ -1,6 +1,7 @@
 import argparse
 from faketwilio.http import TwilioIncomingCallRequest, TwilioIncomingSmsRequest
-from faketwilio.util import fetch_app
+from faketwilio.parse import parse_twiml as parser
+from faketwilio.util import fetch_app, callback_str
 #TODO: import logging
 
 
@@ -11,7 +12,17 @@ def parse_sms(account, authtoken, number, message, parse_twiml, **kwargs):
     print("Sending a {method} request to {url} ...".format(method=method, url=url))
     resp = req.send(method, url, authtoken)
     if parse_twiml:
-        pass
+        parser(resp,
+            kwargs['say_callback'],
+            kwargs['play_callback'],
+            kwargs['gather_callback'],
+            kwargs['record_callback'],
+            kwargs['sms_callback'],
+            kwargs['dial_callback'],
+            kwargs['hangup_callback'],
+            kwargs['redirect_callback'],
+            kwargs['reject_callback'],
+            kwargs['pause_callback'])
     else:
         print("Got TwiML response...")
         print(resp)
@@ -37,10 +48,10 @@ def main():
     # XXX: is this fesible?
     parser.add_argument("--parse-twiml", help="Fake execute the TwiML",
             action="store_true")
-    for verb in ["play", "say", "gather", "record", "sms", "dial"]:
-        parser.add_argument("--{0}-callback".format(verb),
+    for verb in ["play", "say", "gather", "record", "sms", "dial", "hangup", "redirect", "reject", "pause"]:
+        parser.add_argument("--{0}-callback".format(verb), metavar="module.func",
                 help="Python function to do <{0}>".format(verb.capitalize()),
-                metavar="module.func", default="faketwilio.twiml.{0}".format(verb))
+                default="faketwilio.twiml.{0}".format(verb), type=callback_str)
 
     subparsers = parser.add_subparsers(help="Phone Action")
 

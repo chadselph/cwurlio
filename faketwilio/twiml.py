@@ -3,32 +3,32 @@ Default handlers for parsing TwiML; just print messages.
 """
 from __future__ import print_function
 
-def say(name, attributes, text):
-    print("Robot voice says: ", text)
+def say(tag, attributes, data):
+    print("Robot voice says: ", data)
 
-def play(name, attributes, text):
-    print("Playing: ", text)
+def play(tag, attributes, data):
+    print("Playing: ", data)
 
-def gather(name, attributes, text):
+def gather(tag, attributes, data):
     raw_input("Gather: (blank for timeout)")
 
-def record(name, attributes, text):
+def record(tag, attributes, data):
     print("record")
 
-def sms(name, attributes, text):
-    print("sending a text to ", text)
+def sms(tag, attributes, data):
+    print("sending", attributes.get('to','you') ,"an sms:", data)
 
-def dial(name, attributes, text, children):
+def dial(tag, attributes, data, children):
     print("dialing...")
 
-def hangup(name, attributes, text):
+def hangup(tag, attributes, data):
     print("ending call")
 
-def redirect(name, attributes, text):
+def redirect(tag, attributes, data):
     pass
 
-def reject(name, attributes, text):
+def reject(tag, attributes, data):
     pass
 
-def pause(name, attributes, text):
-    print("pausing for ",text,"seconds")
+def pause(tag, attributes, data):
+    print("pausing for ",data,"seconds")

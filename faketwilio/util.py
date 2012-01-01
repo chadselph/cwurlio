@@ -1,3 +1,4 @@
+import argparse
 import sys
 from twilio.rest import TwilioRestClient
 from faketwilio import CwurlioUserException
@@ -30,7 +31,17 @@ def fetch_sms_app(match, client):
         match = client.applications.get(match.sms_application_sid)
     return match.sms_method, match.sms_url
 
-def get_callback(string):
-    mod, func = string.rsplit(".", 1)
-    __import__(mod)
-    return getattr(sys.modules[mod], func)
+def callback_str(string):
+    """
+    Argparse type that is of the form "module.submod.func"
+    """
+    try:
+        mod, func = string.rsplit(".", 1)
+        __import__(mod)
+        return getattr(sys.modules[mod], func)
+    except ValueError:
+        raise argparse.ArgumentTypeError("%s is not a function" % string)
+    except ImportError as e:
+        raise argparse.ArgumentTypeError(e)
+    except AttributeError:
+        raise argparse.ArgumentTypeError("%s doesn't have function %s" % (mod, func))

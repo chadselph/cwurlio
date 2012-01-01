@@ -43,13 +43,13 @@ class TwimlQueue(object):
                 raise TwimlParseError("<Response> needed.")
             else:
                 self.in_response = True
-        print "  " * len(self.queue), "entering", tag
+        #print "  " * len(self.queue), "entering", tag
         self.queue.append({'tag': tag, 'attributes': attributes})
 
     def end(self, tag):
         args = self.queue.pop()
         self.handlers[tag](**args)
-        print "  " * len(self.queue), 'ending tag', tag, args
+        #print "  " * len(self.queue), 'ending tag', tag, args
 
     def data(self, data):
         top = self.queue.pop()
@@ -60,6 +60,10 @@ class TwimlQueue(object):
     def close(self):
         pass
 
+def parse_twiml(data, *args, **kwargs):
+    parser = XMLParser(target=TwimlQueue(*args, **kwargs))
+    parser.feed(data)
+    parser.close()
 
 if __name__ == "__main__":
     # run tests
