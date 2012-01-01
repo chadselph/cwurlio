@@ -5,10 +5,18 @@ from faketwilio.util import fetch_app, callback_str
 #TODO: import logging
 
 
-def parse_sms(account, authtoken, number, message, parse_twiml, **kwargs):
+def parse_sms(account, authtoken, number, message, **kwargs):
     from_ = kwargs.pop('from', '+12345678900')
     req = TwilioIncomingSmsRequest(account, from_, number, message)
-    (method, url) = fetch_app(account, authtoken, number, "sms")
+    return run(account, authtoken, 'sms', req, number, **kwargs)
+
+def parse_dial(account, authtoken, number, **kwargs):
+    from_ = kwargs.pop('from', '+12345678900')
+    req = TwilioIncomingCallRequest(account, from_, number)
+    return run(account, authtoken, 'dial', req, number, **kwargs)
+
+def run(account, authtoken, action, req, number, parse_twiml, **kwargs):
+    (method, url) = fetch_app(account, authtoken, number, action)
     print("Sending a {method} request to {url} ...".format(method=method, url=url))
     resp = req.send(method, url, authtoken)
     if parse_twiml:
@@ -23,18 +31,6 @@ def parse_sms(account, authtoken, number, message, parse_twiml, **kwargs):
             kwargs['redirect_callback'],
             kwargs['reject_callback'],
             kwargs['pause_callback'])
-    else:
-        print("Got TwiML response...")
-        print(resp)
-
-def parse_dial(account, authtoken, number, parse_twiml, **kwargs):
-    from_ = kwargs.pop('from', '+12345678900')
-    req = TwilioIncomingCallRequest(account, from_, number)
-    (method, url) = fetch_app(account, authtoken, number, "dial")
-    print("Sending a {method} request to {url} ...".format(method=method, url=url))
-    resp = req.send(method, url, authtoken)
-    if parse_twiml:
-        pass
     else:
         print("Got TwiML response...")
         print(resp)
