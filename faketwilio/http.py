@@ -1,6 +1,8 @@
 import random
-import urllib
+import urllib, urllib2
 import uuid
+from twilio.util import RequestValidator
+from faketwilio import CwurlioUserException
 
 class TwilioProxyRequest(object):
 
@@ -17,22 +19,29 @@ class TwilioProxyRequest(object):
     def fake_sid(self, prefix):
         return "{0}{1}".format(prefix, str(uuid.uuid4()).replace('-',''))
 
-    def to_url_params(self, extra=None):
-        args = {} if extra is None else extra
+    @property
+    def url_params(self):
+        args = {}
         for param in self.params:
             if getattr(self, param, None):
                 args[param] = getattr(self, param)
-        return urllib.urlencode(args)
+        return args
 
-    def send(self, method, url):
+    def send(self, method, url, authtoken):
+        validator = RequestValidator(authtoken)
+        params = urllib.urlencode(self.url_params)
         if method == "GET":
-            # TODO: doesn't combine GET args if some are already in URL
-            # (could use requests or httplib2 for this)
-            return urllib.urlopen("{0}?{1}".format(method, url)).read()
+            url = "{0}?{1}".format(url, params)
+            sig = validator.compute_signature(url, {})
+            req = urllib2.Request(url)
         elif method == "POST":
-            return urllib.urlopen(url, self.to_url_params()).read()
+            sig = validator.compute_signature(url, self.url_params)
+            req = urllib2.Request(url, params)
         else:
-            raise CwurlioUserException("Invalid method: {0}".format(method))
+            raise CwurlioUserException("Invalid method: %s" % method)
+
+        req.add_header("X-Twilio-Signature", sig)
+        return urllib2.urlopen(req).read()
 
 class TwilioIncomingSmsRequest(TwilioProxyRequest):
     params = ['SmsSid', 'AccountSid', 'From', 'To', 'Body', 'FromCity',

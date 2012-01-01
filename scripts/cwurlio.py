@@ -1,6 +1,5 @@
 import argparse
 from faketwilio.http import TwilioIncomingCallRequest, TwilioIncomingSmsRequest
-from faketwilio import CwurlioUserException
 from faketwilio.util import fetch_app
 #TODO: import logging
 
@@ -10,7 +9,7 @@ def parse_sms(account, authtoken, number, message, parse_twiml, **kwargs):
     req = TwilioIncomingSmsRequest(account, from_, number, message)
     (method, url) = fetch_app(account, authtoken, number, "sms")
     print("Sending a {method} request to {url} ...".format(method=method, url=url))
-    resp = req.send(method, url)
+    resp = req.send(method, url, authtoken)
     if parse_twiml:
         pass
     else:
@@ -22,7 +21,7 @@ def parse_dial(account, authtoken, number, parse_twiml, **kwargs):
     req = TwilioIncomingCallRequest(account, from_, number)
     (method, url) = fetch_app(account, authtoken, number, "dial")
     print("Sending a {method} request to {url} ...".format(method=method, url=url))
-    resp = req.send(method, url)
+    resp = req.send(method, url, authtoken)
     if parse_twiml:
         pass
     else:
@@ -32,8 +31,8 @@ def parse_dial(account, authtoken, number, parse_twiml, **kwargs):
 def main():
 
     parser = argparse.ArgumentParser(description="Fake Twilio incoming call/sms tester")
-    parser.add_argument("--account", help="Twilio Account Sid", default="")
-    parser.add_argument("--authtoken", help="Twilio Auth Token", default="")
+    parser.add_argument("--account", help="Twilio Account Sid")
+    parser.add_argument("--authtoken", help="Twilio Auth Token")
 
     # XXX: is this fesible?
     parser.add_argument("--parse-twiml", help="Fake execute the TwiML",
